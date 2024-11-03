@@ -1,0 +1,7 @@
+django
+django-rest-framework
+python-dotenv
+torch
+transformers
+django-storages
+boto3 
