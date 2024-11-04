@@ -122,7 +122,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.onrender.com',  # Allows all subdomains of onrender.com
-    'https://threed-avatar-connected-to-ai.onrender.com'  # Your specific Render URL
+    'threed-avatar-connected-to-ai-1.onrender.com',  # Your specific Render URL
 ]
 
 # Static files
