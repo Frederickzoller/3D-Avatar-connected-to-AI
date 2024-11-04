@@ -122,7 +122,6 @@ CSRF_USE_SESSIONS = True
 # Add this to ensure CORS works in development and production
 CORS_ORIGIN_ALLOW_ALL = True  # This will allow all origins
 CORS_ALLOW_CREDENTIALS = True
-CORS_REPLACE_HTTPS_REFERER = True
 
 # Ensure middleware order is correct
 MIDDLEWARE = [
