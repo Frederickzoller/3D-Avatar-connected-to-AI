@@ -160,18 +160,24 @@ APPEND_SLASH = True  # This prevents Django from enforcing trailing slashes
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
-        'django.request': {
+        'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'level': 'INFO',
         },
-        'django.security': {
+        'chat': {  # Add this logger for our app
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,

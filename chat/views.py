@@ -12,6 +12,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from asgiref.sync import sync_to_async, async_to_sync
+import logging
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 class ChatViewSet(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
@@ -36,7 +40,14 @@ class ChatViewSet(viewsets.ModelViewSet):
         )
 
         # Initialize LLM service
-        llm_service = LLMService()
+        try:
+            llm_service = LLMService()
+        except Exception as e:
+            logger.error(f"Failed to initialize LLM service: {str(e)}")
+            return Response({
+                'error': 'Failed to initialize AI service',
+                'detail': str(e) if settings.DEBUG else 'Internal server error'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         # Get conversation history
         conversation_history = list(conversation.messages.all().values('role', 'content'))
@@ -53,12 +64,15 @@ class ChatViewSet(viewsets.ModelViewSet):
             )
 
             return Response({
+                'message': ai_response,
                 'user_message': MessageSerializer(user_message).data,
                 'ai_message': MessageSerializer(ai_message).data
             }, status=status.HTTP_200_OK)
         except Exception as e:
+            logger.error(f"Error generating AI response: {str(e)}")
             return Response({
-                'error': str(e)
+                'error': 'Failed to generate AI response',
+                'detail': str(e) if settings.DEBUG else 'Internal server error'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CustomAuthToken(ObtainAuthToken):
