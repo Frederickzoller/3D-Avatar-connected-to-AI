@@ -1,24 +1,37 @@
 import os
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
 
-
 INSTALLED_APPS = [
-    # ...
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',  # Required for token authentication
     'chat',
     'storages',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
     ],
 }
 
@@ -32,7 +45,7 @@ def get_env_variable(var_name):
 
 # LLM settings
 LLM_MODEL = "Qwen/Qwen2.5-72B-Instruct"
-LLM_API_KEY = get_env_variable('LLM_API_KEY')  # If needed for your setup
+HF_API_TOKEN = get_env_variable('HF_API_TOKEN')
 
 # Voice synthesis settings
 ELEVENLABS_API_KEY = get_env_variable('ELEVENLABS_API_KEY')
@@ -48,3 +61,116 @@ if os.environ.get('USE_S3_STORAGE', 'False').lower() == 'true':
     AWS_S3_REGION_NAME = get_env_variable('AWS_S3_REGION_NAME')
     AWS_DEFAULT_ACL = 'private'
     AWS_S3_FILE_OVERWRITE = False
+
+# Remove the first INSTALLED_APPS definition and keep only this one:
+DJANGO_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+
+THIRD_PARTY_APPS = [
+    'rest_framework',
+    'rest_framework.authtoken',  # Changed back to correct module name
+    'storages',
+]
+
+LOCAL_APPS = [
+    'chat',
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# Templates configuration
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+# Middleware configuration
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'chat.middleware.ApiCSRFMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Basic Django settings
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-temporary-dev-key-change-in-production')
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# Static files
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Database configuration
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# Add ROOT_URLCONF setting
+ROOT_URLCONF = 'citizens_llm_chat.urls'
+
+# Add WSGI_APPLICATION setting
+WSGI_APPLICATION = 'citizens_llm_chat.wsgi.application'
+
+# Add CSRF settings
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']  # Add your frontend domains here
+CSRF_USE_SESSIONS = True  # Store CSRF tokens in sessions for better security
+
+# Add APPEND_SLASH setting
+APPEND_SLASH = True  # This prevents Django from enforcing trailing slashes
+
+# Add these to your existing settings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.security': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+# Make sure these authentication backends are included
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

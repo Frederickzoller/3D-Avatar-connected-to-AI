@@ -11,10 +11,16 @@ class Conversation(models.Model):
         ordering = ['-updated_at']
 
 class Message(models.Model):
-    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
+    ROLE_CHOICES = (
+        ('user', 'User'),
+        ('assistant', 'Assistant'),
+        ('system', 'System'),
+    )
+    
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     content = models.TextField()
-    is_user = models.BooleanField(default=True)  # True if message is from user, False if from AI
-    created_at = models.DateTimeField(auto_now_add=True)
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+    timestamp = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        ordering = ['created_at'] 
+        ordering = ['timestamp']

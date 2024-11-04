@@ -1,0 +1,156 @@
+{
+    "info": {
+        "_postman_id": "your-collection-id",
+        "name": "Citizens LLM Chat API",
+        "description": "API for managing AI-powered chat conversations",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"your_username\",\n    \"password\": \"your_password\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/chat/login/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "login",
+                                ""
+                            ]
+                        },
+                        "description": "Login to get authentication token"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Conversations",
+            "item": [
+                {
+                    "name": "Create Conversation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Token {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"New Chat Conversation\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/chat/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Create a new conversation"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Conversations",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Token {{auth_token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chat/conversations/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                ""
+                            ]
+                        },
+                        "description": "Get all conversations"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Send Message",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Token {{auth_token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"message\": \"Hello, AI assistant!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/chat/conversations/{{conversation_id}}/send_message/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chat",
+                                "conversations",
+                                "{{conversation_id}}",
+                                "send_message",
+                                ""
+                            ]
+                        },
+                        "description": "Send a message in a conversation"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000"
+        },
+        {
+            "key": "auth_token",
+            "value": ""
+        },
+        {
+            "key": "conversation_id",
+            "value": "1"
+        }
+    ]
+}

@@ -1,16 +1,12 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import requests
 from django.conf import settings
-import torch
+import json
 
 class LLMService:
     def __init__(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(settings.LLM_MODEL, trust_remote_code=True)
-        self.model = AutoModelForCausalLM.from_pretrained(
-            settings.LLM_MODEL,
-            device_map="auto",
-            trust_remote_code=True
-        ).eval()
-        
+        self.api_url = f"https://api-inference.huggingface.co/models/{settings.LLM_MODEL}"
+        self.headers = {"Authorization": f"Bearer {settings.HF_API_TOKEN}"}
+
     async def get_response(self, message: str, conversation_context: list = None) -> str:
         try:
             # Format conversation history
@@ -22,18 +18,27 @@ class LLMService:
             
             # Add current message
             formatted_messages += f"User: {message}\nAssistant: "
+
+            # Prepare payload
+            payload = {
+                "inputs": formatted_messages,
+                "parameters": {
+                    "max_length": 150,
+                    "temperature": 0.7,
+                    "return_full_text": False
+                }
+            }
+
+            # Make API request
+            response = requests.post(self.api_url, headers=self.headers, json=payload)
+            response.raise_for_status()  # Raise exception for bad status codes
             
-            # Generate response
-            response = self.model.chat(
-                self.tokenizer,
-                formatted_messages,
-                history=[],
-                temperature=0.7,
-                max_length=150
-            )
-            
-            return response
-            
+            # Parse response
+            result = response.json()
+            if isinstance(result, list) and len(result) > 0:
+                return result[0].get('generated_text', 'I apologize, but I could not generate a response.')
+            return 'I apologize, but I could not generate a response.'
+
         except Exception as e:
             print(f"Error in LLM service: {str(e)}")
             return "I apologize, but I'm having trouble processing your request right now."
