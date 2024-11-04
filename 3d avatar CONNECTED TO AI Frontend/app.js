@@ -92,7 +92,7 @@ class ChatApp {
                     'Accept': 'application/json',
                 },
                 mode: 'cors',
-                credentials: 'omit',
+                credentials: 'include',
                 body: JSON.stringify(this.credentials)
             });
 
@@ -221,7 +221,7 @@ class ChatApp {
                     'Content-Type': 'application/json',
                 },
                 mode: 'cors',
-                credentials: 'omit',
+                credentials: 'include',
                 body: JSON.stringify({ message })
             });
 

@@ -186,23 +186,16 @@ AUTHENTICATION_BACKENDS = [
 
 # Add CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:5500",  # For Live Server
+    "http://localhost:5500",
     "http://127.0.0.1:5500",
-    "https://threed-avatar-connected-to-ai-1.onrender.com",  # Add backend URL
-    "null",  # Temporarily allow null origin for local file testing
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "https://threed-avatar-connected-to-ai-1.onrender.com",
 ]
 
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
+CORS_ALLOW_CREDENTIALS = True
 
+# Add these headers to allow the necessary request headers
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -215,8 +208,15 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Allow credentials (cookies, authorization headers)
-CORS_ALLOW_CREDENTIALS = True
+# Allow all HTTP methods
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
 
 # Add CORS_ORIGIN_ALLOW_ALL for development
 if DEBUG:
