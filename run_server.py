@@ -7,7 +7,10 @@ import socket
 # Configure logging with more detailed format
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger('waitress')
 
@@ -41,6 +44,10 @@ def get_available_port():
 
 def main():
     try:
+        # Load environment variables early
+        from dotenv import load_dotenv
+        load_dotenv()
+        
         port = get_available_port()
         
         # Configure Waitress with production-ready settings
@@ -49,30 +56,25 @@ def main():
             'port': port,
             'url_scheme': 'https',
             'threads': int(os.environ.get('WAITRESS_THREADS', '4')),
-            'channel_timeout': 300,  # Increased for long-running LLM responses
+            'channel_timeout': 300,
             'connection_limit': 1000,
             'cleanup_interval': 30,
             'max_request_header_size': 16384,
-            'max_request_body_size': 1073741824,  # 1GB
+            'max_request_body_size': 1073741824,
             'asyncore_use_poll': True,
             'outbuf_overflow': 1048576,
             'inbuf_overflow': 524288,
             'clear_untrusted_proxy_headers': True,
             'trusted_proxy_headers': {'x-forwarded-proto'},
             'trusted_proxy': None,
-            'log_untrusted_proxy_headers': True,  # Added for debugging
-            'retry_startup_delay': 5,  # Added for better startup reliability
+            'log_untrusted_proxy_headers': True,
         }
 
-        # Log configuration and environment
-        logger.info("Server configuration:")
-        for key, value in server_options.items():
-            logger.info(f"{key}: {value}")
-        
+        # Log all environment variables (excluding sensitive ones)
         logger.info("Environment variables:")
-        logger.info(f"PORT: {os.environ.get('PORT')}")
-        logger.info(f"RENDER: {os.environ.get('RENDER')}")
-        logger.info(f"PYTHON_VERSION: {os.environ.get('PYTHON_VERSION')}")
+        for key in os.environ:
+            if not any(sensitive in key.lower() for sensitive in ['token', 'key', 'secret', 'password']):
+                logger.info(f"{key}: {os.environ[key]}")
 
         # Start server with better error handling
         logger.info(f"Starting server on http://0.0.0.0:{port}")
@@ -80,7 +82,6 @@ def main():
         
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}", exc_info=True)
-        # Re-raise the exception to ensure Render sees the failure
         raise
 
 if __name__ == "__main__":

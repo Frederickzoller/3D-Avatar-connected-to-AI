@@ -37,20 +37,23 @@ REST_FRAMEWORK = {
 }
 
 # Raise error if critical environment variables are missing
-def get_env_variable(var_name):
+def get_env_variable(var_name, default=None, required=True):
+    """Get an environment variable with better error handling"""
     try:
         return os.environ[var_name]
     except KeyError:
-        error_msg = f'Set the {var_name} environment variable'
-        raise ImproperlyConfigured(error_msg)
+        if required:
+            error_msg = f'Set the {var_name} environment variable'
+            raise ImproperlyConfigured(error_msg)
+        return default
 
 # LLM settings
 LLM_MODEL = "facebook/opt-125m"  # Using a smaller model for testing
-HF_API_TOKEN = get_env_variable('HF_API_TOKEN')
+HF_API_TOKEN = get_env_variable('HF_API_TOKEN', default='', required=False)  # Make it optional for initial deployment
 
-# Voice synthesis settings
-ELEVENLABS_API_KEY = get_env_variable('ELEVENLABS_API_KEY')
-VOICE_SYNTHESIS_ENABLED = os.environ.get('VOICE_SYNTHESIS_ENABLED', 'True').lower() == 'true'
+# Voice synthesis settings - Make optional
+ELEVENLABS_API_KEY = get_env_variable('ELEVENLABS_API_KEY', default='', required=False)
+VOICE_SYNTHESIS_ENABLED = os.environ.get('VOICE_SYNTHESIS_ENABLED', 'False').lower() == 'true'
 DEFAULT_VOICE_ID = os.environ.get('DEFAULT_VOICE_ID', 'default')
 
 # Avatar storage settings - Only configure if storage is enabled
