@@ -63,7 +63,7 @@ if os.environ.get('USE_S3_STORAGE', 'False').lower() == 'true':
     AWS_DEFAULT_ACL = 'private'
     AWS_S3_FILE_OVERWRITE = False
 
-# Remove the first INSTALLED_APPS definition and keep only this one:
+# Remove the first INSTALLED_APPS definition completely and keep only these:
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -75,8 +75,9 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'rest_framework',
-    'rest_framework.authtoken',  # Changed back to correct module name
+    'rest_framework.authtoken',
     'storages',
+    'corsheaders',
 ]
 
 LOCAL_APPS = [

@@ -7,3 +7,4 @@ boto3
 accelerate>=0.26.0
 waitress>=2.1.2  # Windows-compatible WSGI server
 whitenoise  # Add this for static files in production
+django-cors-headers>=4.3.1
