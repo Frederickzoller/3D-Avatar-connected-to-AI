@@ -198,7 +198,8 @@ AUTHENTICATION_BACKENDS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
-    "https://threed-avatar-connected-to-ai-1.onrender.com"
+    "https://threed-avatar-connected-to-ai-1.onrender.com",
+    "https://threed-avatar-connected-to-ai.onrender.com"  # Add both versions
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -243,3 +244,24 @@ MIDDLEWARE = [
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = False  # Set to True in production
+
+# Update CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "https://threed-avatar-connected-to-ai-1.onrender.com",
+    "https://threed-avatar-connected-to-ai.onrender.com"  # Add both versions
+]
+
+# Add CORS_ORIGIN_WHITELIST as backup
+CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+
+# Make CORS more permissive in development
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
+
+# Ensure proper SSL handling
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True

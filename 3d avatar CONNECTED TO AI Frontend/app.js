@@ -3,7 +3,9 @@ class ChatApp {
         this.messageInput = document.getElementById('messageInput');
         this.sendButton = document.getElementById('sendButton');
         this.chatMessages = document.getElementById('chatMessages');
-        this.apiBaseUrl = 'https://threed-avatar-connected-to-ai-1.onrender.com';
+        this.apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:10000'  // Local development
+            : 'https://threed-avatar-connected-to-ai-1.onrender.com';  // Production
         this.authToken = null;
         this.currentConversationId = null;
         this.maxRetries = 3;
