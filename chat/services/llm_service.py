@@ -14,20 +14,25 @@ class LLMService:
             
             logger.info(f"Initializing LLM service with model: {self.model_name}")
             
-            # Initialize tokenizer and model
+            # Initialize tokenizer and model with CPU configuration
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name, 
                 trust_remote_code=True,
                 token=self.hf_token
             )
+            
+            # Force CPU usage
+            device = torch.device('cpu')
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
-                device_map="auto",
                 trust_remote_code=True,
-                token=self.hf_token
+                token=self.hf_token,
+                device_map='cpu',  # Force CPU usage
+                torch_dtype=torch.float32  # Use float32 for CPU compatibility
             )
+            self.model.to(device)
             
-            logger.info("LLM service initialized successfully")
+            logger.info("LLM service initialized successfully on CPU")
             
         except Exception as e:
             logger.error(f"Error initializing LLM service: {str(e)}")
@@ -68,7 +73,7 @@ class LLMService:
     def _generate_response(self, prompt):
         try:
             # Tokenize the prompt
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+            inputs = self.tokenizer(prompt, return_tensors="pt")
             
             # Generate response
             with torch.no_grad():
