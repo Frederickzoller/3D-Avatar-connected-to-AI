@@ -76,62 +76,53 @@ class ChatApp {
     }
 
     async login(retryCount = 0) {
-        try {
-            if (this.isDevelopment) {
-                console.log('Attempting login...', {
-                    url: `${this.apiBaseUrl}/chat/login/`,
-                    username: this.credentials.username,
-                    timestamp: new Date().toISOString()
-                });
-            }
+        const loginUrl = `${this.apiBaseUrl}/chat/login/`;
+        
+        if (this.isDevelopment) {
+            console.log('Attempting login...', {
+                url: loginUrl,
+                username: this.credentials.username,
+                timestamp: new Date().toISOString()
+            });
+        }
 
-            const response = await fetch(`${this.apiBaseUrl}/chat/login/`, {
+        try {
+            const response = await fetch(loginUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                mode: 'cors',
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    username: this.credentials.username,
-                    password: this.credentials.password
-                })
+                credentials: 'include',
+                body: JSON.stringify(this.credentials)
             });
 
-            if (this.isDevelopment) {
-                console.log('Server response:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: Object.fromEntries(response.headers.entries())
-                });
-            }
-
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                let errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
             this.authToken = data.token;
             
             if (this.isDevelopment) {
-                console.log('Login successful:', {
-                    userId: data.user_id,
-                    hasToken: Boolean(this.authToken)
+                console.log('Login successful:', { 
+                    hasToken: !!this.authToken,
+                    timestamp: new Date().toISOString()
                 });
             }
 
-            await this.createNewConversation();
+            return true;
         } catch (error) {
             console.error('Login error:', error);
-            
-            if (retryCount < this.maxRetries) {
-                console.log(`Retrying login... Attempt ${retryCount + 1} of ${this.maxRetries}`);
-                await new Promise(resolve => setTimeout(resolve, this.retryDelay));
-                return this.login(retryCount + 1);
+            if (this.isDevelopment) {
+                console.log('Login attempt details:', {
+                    url: loginUrl,
+                    error: error.toString(),
+                    timestamp: new Date().toISOString()
+                });
             }
-            
-            this.addMessage('Failed to connect to the server. Please try again later.', 'system');
+            throw error;
         }
     }
 
@@ -203,9 +194,9 @@ class ChatApp {
             const response = await fetch(`${this.apiBaseUrl}/chat/conversations/${this.currentConversationId}/send_message/`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Token ${this.authToken}`,
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Authorization': `Token ${this.authToken}`
                 },
                 credentials: 'include',
                 mode: 'cors',
