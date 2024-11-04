@@ -118,7 +118,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Basic Django settings
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-temporary-dev-key-change-in-production')
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com',  # Allows all subdomains of onrender.com
+    'https://threed-avatar-connected-to-ai.onrender.com'  # Your specific Render URL
+]
 
 # Static files
 STATIC_URL = 'static/'
