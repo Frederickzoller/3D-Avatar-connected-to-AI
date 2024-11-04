@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from asgiref.sync import sync_to_async, async_to_sync
 import logging
 from django.conf import settings
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -29,50 +30,71 @@ class ChatViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def send_message(self, request, pk=None):
-        conversation = get_object_or_404(Conversation, pk=pk)
-        message_content = request.data.get('message', '')
-        
-        # Create user message
-        user_message = Message.objects.create(
-            conversation=conversation,
-            content=message_content,
-            role='user'
-        )
-
-        # Initialize LLM service
         try:
-            llm_service = LLMService()
-        except Exception as e:
-            logger.error(f"Failed to initialize LLM service: {str(e)}")
-            return Response({
-                'error': 'Failed to initialize AI service',
-                'detail': str(e) if settings.DEBUG else 'Internal server error'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        # Get conversation history
-        conversation_history = list(conversation.messages.all().values('role', 'content'))
-        
-        # Use async_to_sync to handle the async get_response
-        try:
-            ai_response = async_to_sync(llm_service.get_response)(message_content, conversation_history)
+            conversation = get_object_or_404(Conversation, pk=pk)
+            message_content = request.data.get('message', '')
             
-            # Create AI message
-            ai_message = Message.objects.create(
+            logger.info(f"Processing message for conversation {pk}")
+            logger.info(f"Message content length: {len(message_content)}")
+            
+            # Create user message
+            user_message = Message.objects.create(
                 conversation=conversation,
-                content=ai_response,
-                role='assistant'
+                content=message_content,
+                role='user'
             )
+            logger.info(f"Created user message with ID: {user_message.id}")
 
-            return Response({
-                'message': ai_response,
-                'user_message': MessageSerializer(user_message).data,
-                'ai_message': MessageSerializer(ai_message).data
-            }, status=status.HTTP_200_OK)
+            # Initialize LLM service with better error handling
+            try:
+                llm_service = LLMService()
+                logger.info("LLM service initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize LLM service: {str(e)}")
+                logger.error(traceback.format_exc())
+                return Response({
+                    'error': 'Failed to initialize AI service',
+                    'detail': str(e) if settings.DEBUG else 'Internal server error',
+                    'debug_info': traceback.format_exc() if settings.DEBUG else None
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # Get conversation history
+            conversation_history = list(conversation.messages.all().values('role', 'content'))
+            logger.info(f"Retrieved conversation history: {len(conversation_history)} messages")
+            
+            # Generate AI response
+            try:
+                ai_response = async_to_sync(llm_service.get_response)(message_content, conversation_history)
+                logger.info(f"Generated AI response length: {len(ai_response)}")
+                
+                # Create AI message
+                ai_message = Message.objects.create(
+                    conversation=conversation,
+                    content=ai_response,
+                    role='assistant'
+                )
+                logger.info(f"Created AI message with ID: {ai_message.id}")
+
+                return Response({
+                    'message': ai_response,
+                    'user_message': MessageSerializer(user_message).data,
+                    'ai_message': MessageSerializer(ai_message).data
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f"Error generating AI response: {str(e)}")
+                logger.error(traceback.format_exc())
+                return Response({
+                    'error': 'Failed to generate AI response',
+                    'detail': str(e) if settings.DEBUG else 'Internal server error',
+                    'debug_info': traceback.format_exc() if settings.DEBUG else None
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
-            logger.error(f"Error generating AI response: {str(e)}")
+            logger.error(f"Error processing message: {str(e)}")
+            logger.error(traceback.format_exc())
             return Response({
-                'error': 'Failed to generate AI response',
-                'detail': str(e) if settings.DEBUG else 'Internal server error'
+                'error': 'Failed to process message',
+                'detail': str(e) if settings.DEBUG else 'Internal server error',
+                'debug_info': traceback.format_exc() if settings.DEBUG else None
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CustomAuthToken(ObtainAuthToken):

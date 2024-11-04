@@ -3,6 +3,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 from django.conf import settings
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -13,49 +14,64 @@ class LLMService:
             self.hf_token = settings.HF_API_TOKEN
             
             logger.info(f"Initializing LLM service with model: {self.model_name}")
+            logger.info(f"HF Token available: {bool(self.hf_token)}")
             
-            # Initialize tokenizer and model with CPU configuration
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name, 
-                trust_remote_code=True,
-                token=self.hf_token
-            )
+            # Initialize tokenizer with better error handling
+            try:
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.model_name, 
+                    trust_remote_code=True,
+                    token=self.hf_token
+                )
+                logger.info("Tokenizer initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize tokenizer: {str(e)}")
+                logger.error(traceback.format_exc())
+                raise
             
-            # Force CPU usage
-            device = torch.device('cpu')
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                trust_remote_code=True,
-                token=self.hf_token,
-                device_map='cpu',  # Force CPU usage
-                torch_dtype=torch.float32  # Use float32 for CPU compatibility
-            )
-            self.model.to(device)
-            
-            logger.info("LLM service initialized successfully on CPU")
+            # Initialize model with better error handling
+            try:
+                device = torch.device('cpu')
+                logger.info(f"Using device: {device}")
+                
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    self.model_name,
+                    trust_remote_code=True,
+                    token=self.hf_token,
+                    device_map='cpu',
+                    torch_dtype=torch.float32,
+                    low_cpu_mem_usage=True
+                )
+                self.model.to(device)
+                logger.info("Model initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize model: {str(e)}")
+                logger.error(traceback.format_exc())
+                raise
             
         except Exception as e:
-            logger.error(f"Error initializing LLM service: {str(e)}")
+            logger.error(f"Error in LLM service initialization: {str(e)}")
+            logger.error(traceback.format_exc())
             raise
 
     async def get_response(self, message, conversation_history):
         try:
             logger.info(f"Generating response for message: {message[:50]}...")
+            logger.info(f"Conversation history length: {len(conversation_history)}")
             
-            # Format conversation history
             formatted_history = self._format_conversation_history(conversation_history)
-            
-            # Prepare the prompt
             prompt = self._prepare_prompt(formatted_history, message)
             
-            # Generate response
+            logger.info(f"Prepared prompt length: {len(prompt)}")
+            
             response = self._generate_response(prompt)
             
-            logger.info(f"Generated response: {response[:50]}...")
+            logger.info(f"Generated response length: {len(response)}")
             return response
             
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
+            logger.error(traceback.format_exc())
             return "I apologize, but I'm having trouble generating a response right now. Please try again later."
 
     def _format_conversation_history(self, history):

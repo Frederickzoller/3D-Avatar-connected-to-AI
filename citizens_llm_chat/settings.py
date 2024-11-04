@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 from pathlib import Path
+import json
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,8 +46,32 @@ def get_env_variable(var_name):
         raise ImproperlyConfigured(error_msg)
 
 # LLM settings
-LLM_MODEL = "Qwen/Qwen2.5-72B-Instruct"
-HF_API_TOKEN = get_env_variable('HF_API_TOKEN')
+LLM_CONFIG = {
+    'model_name': "Qwen/Qwen2.5-72B-Instruct",
+    'max_length': 512,
+    'temperature': 0.7,
+    'device': 'cpu',
+    'load_in_8bit': True,  # Reduce memory usage
+    'torch_dtype': 'float32'
+}
+
+# Environment variables with better error handling
+def get_env_variable(var_name, default=None, required=True):
+    value = os.environ.get(var_name, default)
+    if value is None and required:
+        error_msg = f'Required environment variable {var_name} is not set'
+        logger.error(error_msg)
+        raise ImproperlyConfigured(error_msg)
+    return value
+
+# Update HF_API_TOKEN with better error handling
+HF_API_TOKEN = get_env_variable('HF_API_TOKEN', required=True)
+LLM_MODEL = LLM_CONFIG['model_name']
+
+# Add debug logging for LLM configuration
+if DEBUG:
+    logger.info(f"LLM Configuration: {json.dumps(LLM_CONFIG, indent=2)}")
+    logger.info(f"HF_API_TOKEN set: {bool(HF_API_TOKEN)}")
 
 # Voice synthesis settings
 ELEVENLABS_API_KEY = get_env_variable('ELEVENLABS_API_KEY')
