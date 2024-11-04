@@ -75,7 +75,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-# CORS settings - Preserved exactly as before
+# CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
@@ -107,16 +107,29 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-# Add CORS_ORIGIN_ALLOW_ALL for development
-if DEBUG:
-    CORS_ORIGIN_ALLOW_ALL = True
+# CSRF settings
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    'https://threed-avatar-connected-to-ai-1.onrender.com'
+]
+CSRF_USE_SESSIONS = True
 
-# Middleware - Keep CORS middleware first
+# Add this to ensure CORS works in development and production
+CORS_ORIGIN_ALLOW_ALL = True  # This will allow all origins
+CORS_ALLOW_CREDENTIALS = True
+CORS_REPLACE_HTTPS_REFERER = True
+
+# Ensure middleware order is correct
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Keep this first
-    'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Must be first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'chat.middleware.ApiCSRFMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -186,12 +199,6 @@ DATABASES = {
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
-
-# CSRF settings
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
-CSRF_USE_SESSIONS = True
 
 # Other Django settings
 ROOT_URLCONF = 'citizens_llm_chat.urls'

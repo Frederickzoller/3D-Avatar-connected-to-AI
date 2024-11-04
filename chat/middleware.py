@@ -13,9 +13,13 @@ class ApiCSRFMiddleware(CsrfViewMiddleware):
 
     def process_response(self, request, response):
         response = super().process_response(request, response)
-        if request.method == 'OPTIONS':
-            response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-            response['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
-            response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            response['Access-Control-Max-Age'] = '86400'  # 24 hours
+        
+        # Always add CORS headers
+        origin = request.headers.get('Origin', '*')
+        response['Access-Control-Allow-Origin'] = origin
+        response['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS, PUT, DELETE'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+        response['Access-Control-Allow-Credentials'] = 'true'
+        response['Access-Control-Max-Age'] = '86400'  # 24 hours
+        
         return response 
