@@ -99,7 +99,6 @@ class ChatApp {
                 })
             });
 
-            // Log the raw response in development
             if (this.isDevelopment) {
                 console.log('Server response:', {
                     status: response.status,
@@ -122,7 +121,7 @@ class ChatApp {
                 });
             }
 
-            await this.createConversation();
+            await this.createNewConversation();
         } catch (error) {
             console.error('Login error:', error);
             
