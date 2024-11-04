@@ -65,8 +65,11 @@ class CustomAuthToken(ObtainAuthToken):
     permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
-        # Add debug logging
-        print(f"Login attempt for username: {request.data.get('username')}")
+        # Enhanced debug logging
+        print(f"Login attempt details:")
+        print(f"- Username: {request.data.get('username')}")
+        print(f"- Password provided: {bool(request.data.get('password'))}")
+        print(f"- Headers: {dict(request.headers)}")
         
         serializer = self.serializer_class(data=request.data,
                                          context={'request': request})
@@ -74,6 +77,9 @@ class CustomAuthToken(ObtainAuthToken):
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
+            
+            # Log successful login
+            print(f"Login successful for user: {user.username}")
             
             return Response({
                 'token': token.key,
@@ -86,6 +92,12 @@ class CustomAuthToken(ObtainAuthToken):
                 username=request.data.get('username'),
                 password=request.data.get('password')
             )
+            
+            # Enhanced error logging
+            print(f"Authentication error: {str(e)}")
+            print(f"Manual auth result: {user}")
+            print(f"User exists check: {User.objects.filter(username=request.data.get('username')).exists()}")
+            
             if user is None:
                 return Response({
                     'error': 'Authentication failed',
