@@ -69,7 +69,8 @@ class CustomAuthToken(ObtainAuthToken):
         print(f"Login attempt details:")
         print(f"- Username: {request.data.get('username')}")
         print(f"- Password provided: {bool(request.data.get('password'))}")
-        print(f"- Headers: {dict(request.headers)}")
+        print(f"- Request Headers: {dict(request.headers)}")
+        print(f"- Request Body: {request.data}")
         
         serializer = self.serializer_class(data=request.data,
                                          context={'request': request})
@@ -88,6 +89,7 @@ class CustomAuthToken(ObtainAuthToken):
             })
         except Exception as e:
             # Try manual authentication to get more details
+            from django.contrib.auth.models import User
             user = authenticate(
                 username=request.data.get('username'),
                 password=request.data.get('password')
@@ -97,6 +99,7 @@ class CustomAuthToken(ObtainAuthToken):
             print(f"Authentication error: {str(e)}")
             print(f"Manual auth result: {user}")
             print(f"User exists check: {User.objects.filter(username=request.data.get('username')).exists()}")
+            print(f"All users in database: {list(User.objects.values_list('username', flat=True))}")
             
             if user is None:
                 return Response({
@@ -105,6 +108,7 @@ class CustomAuthToken(ObtainAuthToken):
                     'debug_info': {
                         'username_exists': bool(User.objects.filter(username=request.data.get('username')).exists()),
                         'password_provided': bool(request.data.get('password')),
+                        'available_users': list(User.objects.values_list('username', flat=True))
                     }
                 }, status=status.HTTP_401_UNAUTHORIZED)
             return Response({

@@ -93,7 +93,10 @@ class ChatApp {
                 },
                 mode: 'cors',
                 credentials: 'include',
-                body: JSON.stringify(this.credentials)
+                body: JSON.stringify({
+                    username: this.credentials.username,
+                    password: this.credentials.password
+                })
             });
 
             // Log the raw response in development
@@ -103,57 +106,36 @@ class ChatApp {
                     statusText: response.statusText,
                     headers: Object.fromEntries(response.headers.entries())
                 });
+                
+                // Log the response body for debugging
+                const responseBody = await response.clone().json();
+                console.log('Response body:', responseBody);
             }
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                const errorData = await response.json();
+                console.error('Login error details:', errorData);
                 if (response.status === 401) {
-                    const errorMessage = errorData.detail || errorData.message || 'Invalid credentials';
-                    throw new Error(`Authentication failed: ${errorMessage}`);
+                    throw new Error(`Authentication failed: ${errorData.detail || 'Please check your username and password.'}`);
                 }
-                throw new Error(errorData.message || `Login failed with status ${response.status}`);
+                throw new Error(errorData.error || `Login failed with status ${response.status}`);
             }
 
             const data = await response.json();
-            
-            // Validate response data
-            if (!data || typeof data !== 'object') {
-                throw new Error('Invalid response format from server');
-            }
-
-            if (!data.token) {
-                throw new Error('No authentication token in response');
-            }
-
             this.authToken = data.token;
-            if (this.isDevelopment) {
-                console.log('Login successful, token received');
-            }
-            
-            // Clear any previous error messages
             this.clearSystemMessages();
-            this.addMessage('Connected successfully!', 'system');
-            
             await this.createNewConversation();
         } catch (error) {
             console.error('Login error:', error);
+            this.addMessage(error.message, 'system');
             
-            if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                const corsError = 'Connection error: Unable to reach the server. ';
-                console.error(corsError + 'Please ensure you are using a proper HTTP server.');
-                
-                if (retryCount < this.maxRetries) {
-                    this.addMessage(`Attempting to reconnect... (${retryCount + 1}/${this.maxRetries})`, 'system');
-                    setTimeout(() => this.login(retryCount + 1), this.retryDelay * (retryCount + 1));
-                    return;
-                }
+            // Retry logic for network errors
+            if (retryCount < this.maxRetries) {
+                console.log(`Retrying login... Attempt ${retryCount + 1} of ${this.maxRetries}`);
+                setTimeout(() => this.login(retryCount + 1), this.retryDelay);
+            } else {
+                this.addMessage('Connection error: Unable to reach the server. Please ensure you are using a proper HTTP server.', 'system');
             }
-            
-            const errorMessage = this.isDevelopment 
-                ? `Authentication error: ${error.message}\nPlease check the console for more details.`
-                : 'Unable to connect. Please try again later.';
-            
-            this.addMessage(errorMessage, 'system');
         }
     }
 
