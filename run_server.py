@@ -65,8 +65,9 @@ def main():
             'outbuf_overflow': 1048576,
             'inbuf_overflow': 524288,
             'clear_untrusted_proxy_headers': True,
+            'trusted_proxy': '*',  # Trust Render's proxy infrastructure
             'trusted_proxy_headers': {'x-forwarded-proto'},
-            'trusted_proxy': None,
+            'trusted_proxy_count': 1,
             'log_untrusted_proxy_headers': True,
         }
 
