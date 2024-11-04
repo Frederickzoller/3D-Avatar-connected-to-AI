@@ -29,18 +29,23 @@ class LLMService:
                 logger.error(f"Error initializing tokenizer: {str(e)}")
                 raise
             
-            # Initialize pipeline with explicit model kwargs
-            self.pipe = pipeline(
-                "text-generation",
-                model=self.model_name,
-                tokenizer=self.tokenizer,
-                token=self.hf_token,
-                device=device,
-                model_kwargs={
-                    "low_cpu_mem_usage": True,
-                    "torch_dtype": torch.float32
-                }
-            )
+            try:
+                # Initialize pipeline with minimal memory usage
+                self.pipe = pipeline(
+                    "text-generation",
+                    model=self.model_name,
+                    tokenizer=self.tokenizer,
+                    token=self.hf_token,
+                    device=device,
+                    model_kwargs={
+                        "torch_dtype": torch.float32,
+                        # Remove low_cpu_mem_usage if accelerate isn't available
+                        # "low_cpu_mem_usage": True
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error initializing pipeline: {str(e)}")
+                raise
             
             logger.info("LLM service initialized successfully")
             
@@ -60,25 +65,28 @@ class LLMService:
             
             # Generate response with error handling
             try:
-                response = self.pipe(
+                outputs = self.pipe(
                     prompt,
-                    max_new_tokens=512,
+                    max_new_tokens=128,  # Reduced for memory constraints
                     num_return_sequences=1,
                     temperature=0.7,
                     do_sample=True,
                     pad_token_id=self.tokenizer.eos_token_id
-                )[0]['generated_text']
+                )
+                
+                response = outputs[0]['generated_text']
+                
+                # Extract only the assistant's response
+                response_parts = response.split("Assistant:")
+                if len(response_parts) > 1:
+                    response = response_parts[-1].strip()
+                
+                logger.info(f"Generated response: {response[:50]}...")
+                return response
+                
             except Exception as e:
                 logger.error(f"Error during text generation: {str(e)}")
                 return "I apologize, but I'm having trouble processing your request. Please try again."
-            
-            # Extract only the assistant's response
-            response_parts = response.split("Assistant:")
-            if len(response_parts) > 1:
-                response = response_parts[-1].strip()
-            
-            logger.info(f"Generated response: {response[:50]}...")
-            return response
             
         except Exception as e:
             logger.error(f"Error in get_response: {str(e)}")
