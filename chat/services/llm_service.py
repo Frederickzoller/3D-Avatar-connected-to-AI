@@ -3,51 +3,48 @@ from transformers import AutoTokenizer, pipeline
 from django.conf import settings
 import logging
 import torch
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
 logger = logging.getLogger(__name__)
 
 class LLMService:
+    _instance = None
+    _executor = ThreadPoolExecutor(max_workers=2)
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(LLMService, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
     def __init__(self):
+        if self._initialized:
+            return
+            
         try:
             self.model_name = settings.LLM_MODEL
             self.hf_token = settings.HF_API_TOKEN
             
             logger.info(f"Initializing LLM service with model: {self.model_name}")
             
-            # Check CUDA availability but default to CPU
-            device = "cpu"
-            logger.info(f"Using device: {device}")
+            # Initialize tokenizer with simpler settings
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_name,
+                token=self.hf_token
+            )
             
-            # Initialize tokenizer first
-            try:
-                self.tokenizer = AutoTokenizer.from_pretrained(
-                    self.model_name,
-                    token=self.hf_token,
-                    use_fast=False  # Use slower but more compatible tokenizer
-                )
-            except Exception as e:
-                logger.error(f"Error initializing tokenizer: {str(e)}")
-                raise
-            
-            try:
-                # Initialize pipeline with minimal memory usage
-                self.pipe = pipeline(
-                    "text-generation",
-                    model=self.model_name,
-                    tokenizer=self.tokenizer,
-                    token=self.hf_token,
-                    device=device,
-                    model_kwargs={
-                        "torch_dtype": torch.float32,
-                        # Remove low_cpu_mem_usage if accelerate isn't available
-                        # "low_cpu_mem_usage": True
-                    }
-                )
-            except Exception as e:
-                logger.error(f"Error initializing pipeline: {str(e)}")
-                raise
+            # Initialize pipeline with basic settings
+            self.pipe = pipeline(
+                "text-generation",
+                model=self.model_name,
+                tokenizer=self.tokenizer,
+                token=self.hf_token,
+                device="cpu"
+            )
             
             logger.info("LLM service initialized successfully")
+            self._initialized = True
             
         except Exception as e:
             logger.error(f"Error initializing LLM service: {str(e)}")
@@ -57,36 +54,31 @@ class LLMService:
         try:
             logger.info(f"Generating response for message: {message[:50]}...")
             
-            # Format conversation history
+            # Format the prompt
             formatted_history = self._format_conversation_history(conversation_history)
-            
-            # Prepare the prompt
             prompt = self._prepare_prompt(formatted_history, message)
             
-            # Generate response with error handling
-            try:
-                outputs = self.pipe(
-                    prompt,
-                    max_new_tokens=128,  # Reduced for memory constraints
-                    num_return_sequences=1,
-                    temperature=0.7,
-                    do_sample=True,
-                    pad_token_id=self.tokenizer.eos_token_id
-                )
-                
-                response = outputs[0]['generated_text']
-                
-                # Extract only the assistant's response
-                response_parts = response.split("Assistant:")
-                if len(response_parts) > 1:
-                    response = response_parts[-1].strip()
-                
-                logger.info(f"Generated response: {response[:50]}...")
-                return response
-                
-            except Exception as e:
-                logger.error(f"Error during text generation: {str(e)}")
-                return "I apologize, but I'm having trouble processing your request. Please try again."
+            # Generate response synchronously (pipeline doesn't support async)
+            outputs = self.pipe(
+                prompt,
+                max_new_tokens=128,
+                num_return_sequences=1,
+                temperature=0.7,
+                do_sample=True,
+                pad_token_id=self.tokenizer.eos_token_id
+            )
+            
+            # Extract response
+            response_text = outputs[0]['generated_text']
+            response_parts = response_text.split("Assistant:")
+            
+            if len(response_parts) > 1:
+                response = response_parts[-1].strip()
+            else:
+                response = response_text.strip()
+            
+            logger.info(f"Generated response: {response[:50]}...")
+            return response
             
         except Exception as e:
             logger.error(f"Error in get_response: {str(e)}")
