@@ -167,4 +167,20 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+#messageInput:disabled,
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.message.system {
+    white-space: pre-wrap;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-align: left;
+    background-color: var(--surface);
+    border: 1px solid var(--error);
 } 
