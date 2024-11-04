@@ -196,24 +196,36 @@ class ChatApp {
         this.messageInput.style.height = 'auto';
 
         try {
+            if (this.isDevelopment) {
+                console.log('Sending message...', {
+                    url: `${this.apiBaseUrl}/chat/conversations/${this.currentConversationId}/send_message/`,
+                    token: this.authToken ? 'Token present' : 'No token',
+                    message: message.substring(0, 50) + '...'
+                });
+            }
+
             const response = await fetch(`${this.apiBaseUrl}/chat/conversations/${this.currentConversationId}/send_message/`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Token ${this.authToken}`,
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
                 mode: 'cors',
-                credentials: 'include',
+                credentials: 'omit',
                 body: JSON.stringify({ message })
             });
 
-            if (!response.ok) throw new Error('Failed to send message');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `Server error: ${response.status}`);
+            }
 
             const data = await response.json();
             this.addMessage(data.message, 'ai');
         } catch (error) {
             console.error('Message sending error:', error);
-            this.addMessage('Failed to send message. Please try again.', 'system');
+            this.addMessage(`Error: ${error.message}. Please try again.`, 'system');
         }
     }
 

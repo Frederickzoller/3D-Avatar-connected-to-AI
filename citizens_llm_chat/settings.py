@@ -193,10 +193,9 @@ AUTHENTICATION_BACKENDS = [
 # Add CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
-    "http://127.0.0.1:5500",
     "http://localhost:8080",
+    "http://127.0.0.1:5500",
     "http://127.0.0.1:8080",
-    "https://threed-avatar-connected-to-ai-1.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -223,10 +222,6 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-
-# Add CORS_ORIGIN_ALLOW_ALL for development
-if DEBUG:
-    CORS_ORIGIN_ALLOW_ALL = True
 
 # Ensure CORS middleware is at the top
 MIDDLEWARE = [
