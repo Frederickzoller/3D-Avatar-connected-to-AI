@@ -92,7 +92,7 @@ class ChatApp {
                     'Accept': 'application/json',
                 },
                 mode: 'cors',
-                credentials: 'include',
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     username: this.credentials.username,
                     password: this.credentials.password
@@ -106,36 +106,33 @@ class ChatApp {
                     statusText: response.statusText,
                     headers: Object.fromEntries(response.headers.entries())
                 });
-                
-                // Log the response body for debugging
-                const responseBody = await response.clone().json();
-                console.log('Response body:', responseBody);
             }
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Login error details:', errorData);
-                if (response.status === 401) {
-                    throw new Error(`Authentication failed: ${errorData.detail || 'Please check your username and password.'}`);
-                }
-                throw new Error(errorData.error || `Login failed with status ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
             this.authToken = data.token;
-            this.clearSystemMessages();
-            await this.createNewConversation();
+            
+            if (this.isDevelopment) {
+                console.log('Login successful:', {
+                    userId: data.user_id,
+                    hasToken: Boolean(this.authToken)
+                });
+            }
+
+            await this.createConversation();
         } catch (error) {
             console.error('Login error:', error);
-            this.addMessage(error.message, 'system');
             
-            // Retry logic for network errors
             if (retryCount < this.maxRetries) {
                 console.log(`Retrying login... Attempt ${retryCount + 1} of ${this.maxRetries}`);
-                setTimeout(() => this.login(retryCount + 1), this.retryDelay);
-            } else {
-                this.addMessage('Connection error: Unable to reach the server. Please ensure you are using a proper HTTP server.', 'system');
+                await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                return this.login(retryCount + 1);
             }
+            
+            this.addMessage('Failed to connect to the server. Please try again later.', 'system');
         }
     }
 

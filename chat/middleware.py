@@ -11,11 +11,17 @@ class ApiCSRFMiddleware(CsrfViewMiddleware):
         logger.debug(f"Headers: {dict(request.headers)}")
         
         if request.method == 'OPTIONS':
-            return HttpResponse()
+            response = HttpResponse()
+            origin = request.headers.get('Origin')
+            if origin:
+                response['Access-Control-Allow-Origin'] = origin
+                response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+                response['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Requested-With'
+                response['Access-Control-Allow-Credentials'] = 'true'
+                response['Access-Control-Max-Age'] = '86400'
+            return response
         
-        if (request.path.startswith('/chat/') or 
-            request.path.endswith('/login') or 
-            request.path.endswith('/login/')):
+        if request.path.startswith('/chat/'):
             return None
             
         return super().process_view(request, callback, callback_args, callback_kwargs)
@@ -30,7 +36,6 @@ class ApiCSRFMiddleware(CsrfViewMiddleware):
             response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
             response['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Requested-With'
             response['Access-Control-Max-Age'] = '86400'
-            
             response['Vary'] = 'Origin'
         
         logger.debug(f"Response headers: {dict(response.headers)}")

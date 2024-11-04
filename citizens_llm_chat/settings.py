@@ -107,6 +107,7 @@ TEMPLATES = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'chat.middleware.ApiCSRFMiddleware',
@@ -193,34 +194,31 @@ AUTHENTICATION_BACKENDS = [
 # Add CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
-    "http://localhost:8080",
     "http://127.0.0.1:5500",
-    "http://127.0.0.1:8080",
-    "https://threed-avatar-connected-to-ai-1.onrender.com",  # Add your Render.com domain
 ]
 
-# Add CORS_ORIGIN_WHITELIST as a backup
-CORS_ORIGIN_WHITELIST = [
-    "http://localhost:5500",
-    "http://localhost:8080",
-    "http://127.0.0.1:5500",
-    "http://127.0.0.1:8080",
-    "https://threed-avatar-connected-to-ai-1.onrender.com",
-]
-
-# Allow credentials
+CORS_ALLOW_ALL_ORIGINS = True  # Temporarily enable for debugging
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
-# Increase timeout for long-running requests
-CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours in seconds
-
-# Update middleware order
+# Update middleware order - CORS must be first
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Keep this first
-    'django.middleware.common.CommonMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this for static files
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'chat.middleware.ApiCSRFMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
