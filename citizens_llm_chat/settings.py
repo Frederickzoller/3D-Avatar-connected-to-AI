@@ -126,6 +126,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '.onrender.com',  # Allows all subdomains of onrender.com
     'threed-avatar-connected-to-ai-1.onrender.com',  # Your specific Render URL
+    '*',  # Allow all hosts in development
 ]
 
 # Static files
@@ -232,3 +233,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Add this to help with proxy settings
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

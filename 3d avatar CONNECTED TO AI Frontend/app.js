@@ -19,10 +19,10 @@ class ChatApp {
             return; // Don't initialize if running from file://
         }
 
-        // Add proper credentials
+        // Update credentials to match server requirements
         this.credentials = {
-            username: 'patabrava',  // Update with correct username
-            password: 'test123'  // Update with correct password
+            username: 'demo_user',  // Updated username
+            password: 'demo_password'  // Updated password
         };
 
         this.init();
@@ -78,9 +78,10 @@ class ChatApp {
     async login(retryCount = 0) {
         try {
             if (this.isDevelopment) {
-                console.log('Attempting login with credentials:', {
+                console.log('Attempting login...', {
+                    url: `${this.apiBaseUrl}/chat/login/`,
                     username: this.credentials.username,
-                    password: '********'
+                    timestamp: new Date().toISOString()
                 });
             }
 
@@ -95,23 +96,44 @@ class ChatApp {
                 body: JSON.stringify(this.credentials)
             });
 
+            // Log the raw response in development
+            if (this.isDevelopment) {
+                console.log('Server response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries())
+                });
+            }
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 if (response.status === 401) {
-                    throw new Error('Invalid credentials. Please check username and password.');
+                    const errorMessage = errorData.detail || errorData.message || 'Invalid credentials';
+                    throw new Error(`Authentication failed: ${errorMessage}`);
                 }
-                throw new Error(errorData.message || 'Login failed');
+                throw new Error(errorData.message || `Login failed with status ${response.status}`);
             }
 
             const data = await response.json();
+            
+            // Validate response data
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid response format from server');
+            }
+
             if (!data.token) {
-                throw new Error('No authentication token received');
+                throw new Error('No authentication token in response');
             }
 
             this.authToken = data.token;
             if (this.isDevelopment) {
                 console.log('Login successful, token received');
             }
+            
+            // Clear any previous error messages
+            this.clearSystemMessages();
+            this.addMessage('Connected successfully!', 'system');
+            
             await this.createNewConversation();
         } catch (error) {
             console.error('Login error:', error);
@@ -127,8 +149,18 @@ class ChatApp {
                 }
             }
             
-            this.addMessage(`Authentication error: ${error.message}`, 'system');
+            const errorMessage = this.isDevelopment 
+                ? `Authentication error: ${error.message}\nPlease check the console for more details.`
+                : 'Unable to connect. Please try again later.';
+            
+            this.addMessage(errorMessage, 'system');
         }
+    }
+
+    // Add helper method to clear system messages
+    clearSystemMessages() {
+        const systemMessages = this.chatMessages.querySelectorAll('.message.system');
+        systemMessages.forEach(msg => msg.remove());
     }
 
     async createNewConversation() {
