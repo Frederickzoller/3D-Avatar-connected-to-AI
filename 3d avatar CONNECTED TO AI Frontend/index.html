@@ -6,6 +6,12 @@
     <title>Citizens LLM-Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script>
+        // Development environment check
+        if (window.location.protocol === 'file:') {
+            console.warn('Running from file:// protocol. Please use a local development server to avoid CORS issues.');
+        }
+    </script>
 </head>
 <body>
     <div class="app-container">

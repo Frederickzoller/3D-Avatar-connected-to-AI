@@ -189,6 +189,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:5500",  # For Live Server
     "http://127.0.0.1:5500",
+    "https://threed-avatar-connected-to-ai-1.onrender.com",  # Add backend URL
+    "null",  # Temporarily allow null origin for local file testing
 ]
 
 CORS_ALLOW_METHODS = [
@@ -214,3 +216,19 @@ CORS_ALLOW_HEADERS = [
 
 # Allow credentials (cookies, authorization headers)
 CORS_ALLOW_CREDENTIALS = True
+
+# Add CORS_ORIGIN_ALLOW_ALL for development
+if DEBUG:
+    CORS_ORIGIN_ALLOW_ALL = True
+
+# Ensure CORS middleware is at the top
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Keep this first
+    'django.middleware.common.CommonMiddleware',  # This should come right after
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'chat.middleware.ApiCSRFMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]

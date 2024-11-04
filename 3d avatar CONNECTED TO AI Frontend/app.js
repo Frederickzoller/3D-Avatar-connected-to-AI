@@ -9,6 +9,12 @@ class ChatApp {
         this.maxRetries = 3;
         this.retryDelay = 1000; // 1 second
 
+        // Add development configuration
+        this.isDevelopment = window.location.hostname === 'localhost' || window.location.protocol === 'file:';
+        if (this.isDevelopment) {
+            console.log('Running in development mode');
+        }
+
         this.init();
     }
 
@@ -44,7 +50,7 @@ class ChatApp {
                     'Accept': 'application/json',
                 },
                 mode: 'cors',
-                credentials: 'include',
+                credentials: 'omit',
                 body: JSON.stringify({
                     username: 'demo_user',
                     password: 'demo_password'
@@ -63,17 +69,17 @@ class ChatApp {
             console.error('Login error:', error);
             
             if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                const corsError = 'CORS error: Unable to connect to the server. ';
-                console.error(corsError + 'Please ensure the backend CORS settings are configured correctly.');
+                const corsError = 'Connection error: Unable to reach the server. ';
+                console.error(corsError + 'Please ensure you are using a proper HTTP server.');
                 
                 if (retryCount < this.maxRetries) {
                     this.addMessage(`Attempting to reconnect... (${retryCount + 1}/${this.maxRetries})`, 'system');
-                    setTimeout(() => this.login(retryCount + 1), this.retryDelay);
+                    setTimeout(() => this.login(retryCount + 1), this.retryDelay * (retryCount + 1));
                     return;
                 }
             }
             
-            this.addMessage('System error: Unable to connect to the server. Please try again later or contact support.', 'system');
+            this.addMessage('Unable to connect to the chat service. Please ensure you are using a proper HTTP server.', 'system');
         }
     }
 
@@ -85,6 +91,8 @@ class ChatApp {
                     'Authorization': `Token ${this.authToken}`,
                     'Content-Type': 'application/json',
                 },
+                mode: 'cors',
+                credentials: 'omit',
                 body: JSON.stringify({
                     title: 'New Chat'
                 })
@@ -94,12 +102,10 @@ class ChatApp {
 
             const data = await response.json();
             this.currentConversationId = data.id;
-            
-            // Add welcome message
             this.addMessage('Hello! How can I assist you today?', 'ai');
         } catch (error) {
             console.error('Conversation creation error:', error);
-            this.addMessage('System error: Unable to start conversation', 'ai');
+            this.addMessage('Unable to start a new conversation. Please try refreshing the page.', 'system');
         }
     }
 
@@ -107,7 +113,6 @@ class ChatApp {
         const message = this.messageInput.value.trim();
         if (!message) return;
 
-        // Add user message to chat
         this.addMessage(message, 'user');
         this.messageInput.value = '';
         this.messageInput.style.height = 'auto';
@@ -119,6 +124,8 @@ class ChatApp {
                     'Authorization': `Token ${this.authToken}`,
                     'Content-Type': 'application/json',
                 },
+                mode: 'cors',
+                credentials: 'omit',
                 body: JSON.stringify({ message })
             });
 
@@ -128,7 +135,7 @@ class ChatApp {
             this.addMessage(data.message, 'ai');
         } catch (error) {
             console.error('Message sending error:', error);
-            this.addMessage('System error: Unable to send message', 'ai');
+            this.addMessage('Failed to send message. Please try again.', 'system');
         }
     }
 
