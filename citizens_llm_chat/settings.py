@@ -178,10 +178,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
-        'chat': {  # Add this logger for our app
+        'chat.middleware': {
             'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'level': 'INFO',  # Change to INFO to reduce debug noise
+            'propagate': False,
         },
     },
 }
@@ -195,9 +195,9 @@ AUTHENTICATION_BACKENDS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
+    "https://threed-avatar-connected-to-ai-1.onrender.com"
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  # Temporarily enable for debugging
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 CORS_ALLOW_HEADERS = [
@@ -212,9 +212,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Update middleware order - CORS must be first
+# Ensure middleware order is correct
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Must be first
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

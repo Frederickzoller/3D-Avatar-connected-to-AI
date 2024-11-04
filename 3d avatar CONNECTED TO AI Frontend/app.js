@@ -195,7 +195,7 @@ class ChatApp {
             if (this.isDevelopment) {
                 console.log('Sending message...', {
                     url: `${this.apiBaseUrl}/chat/conversations/${this.currentConversationId}/send_message/`,
-                    token: this.authToken ? 'Token present' : 'No token',
+                    token: this.authToken ? 'Present' : 'No token',
                     message: message.substring(0, 50) + '...'
                 });
             }
@@ -205,28 +205,42 @@ class ChatApp {
                 headers: {
                     'Authorization': `Token ${this.authToken}`,
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Origin': window.location.origin
+                    'Accept': 'application/json'
                 },
-                mode: 'cors',
                 credentials: 'include',
+                mode: 'cors',
                 body: JSON.stringify({ message })
             });
 
+            // Enhanced error handling
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({
-                    detail: `Server error: ${response.status}`
-                }));
-                throw new Error(errorData.detail || `Server error: ${response.status}`);
+                let errorMessage = 'Server error occurred';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorData.error || `Server error: ${response.status}`;
+                } catch (e) {
+                    errorMessage = `Server error: ${response.status}`;
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
             this.addMessage(data.message, 'ai');
         } catch (error) {
             console.error('Message sending error:', error);
-            this.addMessage(`Error: ${error.message}. Please try again.`, 'system');
             
-            // Add detailed error logging
+            // Enhanced error message for users
+            let userMessage = 'Failed to send message. ';
+            if (error.message.includes('Failed to fetch')) {
+                userMessage += 'Please check your internet connection.';
+            } else if (error.message.includes('502')) {
+                userMessage += 'The server is temporarily unavailable. Please try again in a few moments.';
+            } else {
+                userMessage += error.message;
+            }
+            
+            this.addMessage(userMessage, 'system');
+            
             if (this.isDevelopment) {
                 console.log('Detailed error information:', {
                     error: error.toString(),
