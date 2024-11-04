@@ -196,37 +196,29 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:5500",
     "http://127.0.0.1:8080",
+    "https://threed-avatar-connected-to-ai-1.onrender.com",  # Add your Render.com domain
 ]
 
+# Add CORS_ORIGIN_WHITELIST as a backup
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:5500",
+    "http://localhost:8080",
+    "http://127.0.0.1:5500",
+    "http://127.0.0.1:8080",
+    "https://threed-avatar-connected-to-ai-1.onrender.com",
+]
+
+# Allow credentials
 CORS_ALLOW_CREDENTIALS = True
 
-# Add these headers to allow the necessary request headers
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
+# Increase timeout for long-running requests
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours in seconds
 
-# Allow all HTTP methods
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-
-# Ensure CORS middleware is at the top
+# Update middleware order
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Keep this first
-    'django.middleware.common.CommonMiddleware',  # This should come right after
+    'django.middleware.common.CommonMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this for static files
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'chat.middleware.ApiCSRFMiddleware',

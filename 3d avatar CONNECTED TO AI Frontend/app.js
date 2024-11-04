@@ -210,14 +210,17 @@ class ChatApp {
                     'Authorization': `Token ${this.authToken}`,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    'Origin': window.location.origin
                 },
                 mode: 'cors',
-                credentials: 'omit',
+                credentials: 'include',
                 body: JSON.stringify({ message })
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
+                const errorData = await response.json().catch(() => ({
+                    detail: `Server error: ${response.status}`
+                }));
                 throw new Error(errorData.detail || `Server error: ${response.status}`);
             }
 
@@ -226,6 +229,16 @@ class ChatApp {
         } catch (error) {
             console.error('Message sending error:', error);
             this.addMessage(`Error: ${error.message}. Please try again.`, 'system');
+            
+            // Add detailed error logging
+            if (this.isDevelopment) {
+                console.log('Detailed error information:', {
+                    error: error.toString(),
+                    stack: error.stack,
+                    authToken: this.authToken ? 'Present' : 'Missing',
+                    conversationId: this.currentConversationId
+                });
+            }
         }
     }
 

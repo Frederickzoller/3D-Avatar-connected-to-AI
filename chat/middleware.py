@@ -24,12 +24,14 @@ class ApiCSRFMiddleware(CsrfViewMiddleware):
         response = super().process_response(request, response)
         
         origin = request.headers.get('Origin')
-        if origin and origin in settings.CORS_ALLOWED_ORIGINS:
+        if origin:
             response['Access-Control-Allow-Origin'] = origin
             response['Access-Control-Allow-Credentials'] = 'true'
-            response['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
-            response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            response['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Requested-With'
             response['Access-Control-Max-Age'] = '86400'
+            
+            response['Vary'] = 'Origin'
         
         logger.debug(f"Response headers: {dict(response.headers)}")
         return response 
