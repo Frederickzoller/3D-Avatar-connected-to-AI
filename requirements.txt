@@ -5,7 +5,8 @@ requests
 django-storages
 boto3
 transformers
-torch --index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.1.0+cpu
 waitress>=2.1.2
 whitenoise
 django-cors-headers>=4.3.1
