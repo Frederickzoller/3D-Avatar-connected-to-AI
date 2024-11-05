@@ -12,16 +12,9 @@ load_dotenv()
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
     ],
 }
 
@@ -186,12 +179,9 @@ AUTHENTICATION_BACKENDS = [
 
 # Add CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5500",
+    "http://localhost:5500",  # Add local development server
     "http://127.0.0.1:5500",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
     "https://threed-avatar-connected-to-ai-1.onrender.com",
-    "https://threed-avatar-connected-to-ai.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -216,64 +206,12 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Critical: Add CORS_URLS_REGEX to specifically allow CORS for your API endpoints
-CORS_URLS_REGEX = r'^/chat/.*$'
-
-# Ensure middleware order is correct
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Must be first
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'chat.middleware.ApiCSRFMiddleware',
-]
-
-# Add this to help with proxy settings
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = False  # Set to True in production
-
-# Update CORS settings
-CORS_ALLOWED_ORIGINS = [
+# Disable CSRF for API endpoints
+CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
     "https://threed-avatar-connected-to-ai-1.onrender.com",
-    "https://threed-avatar-connected-to-ai.onrender.com",
-    # Add any additional frontend URLs here
 ]
 
-# Add CORS_ORIGIN_WHITELIST as backup
-CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
-
-# Make CORS more permissive in development
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-    CORS_ALLOW_CREDENTIALS = True
-
-# Ensure proper SSL handling
 SECURE_SSL_REDIRECT = not DEBUG
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
-
-# Session settings
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-
-# Security settings - adjust based on environment
-SECURE_SSL_REDIRECT = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
-# Add these headers for development
-if DEBUG:
-    SECURE_CROSS_ORIGIN_OPENER_POLICY = None
-    SECURE_REFERRER_POLICY = 'same-origin'
