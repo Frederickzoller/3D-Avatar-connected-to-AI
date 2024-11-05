@@ -13,13 +13,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
     ],
 }
 
@@ -186,7 +188,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
     "https://threed-avatar-connected-to-ai-1.onrender.com",
-    "https://threed-avatar-connected-to-ai.onrender.com"  # Add both versions
+    "https://threed-avatar-connected-to-ai.onrender.com",
+    # Add any additional frontend URLs here
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -237,7 +240,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
     "https://threed-avatar-connected-to-ai-1.onrender.com",
-    "https://threed-avatar-connected-to-ai.onrender.com"  # Add both versions
+    "https://threed-avatar-connected-to-ai.onrender.com",
+    # Add any additional frontend URLs here
 ]
 
 # Add CORS_ORIGIN_WHITELIST as backup
@@ -252,3 +256,7 @@ if DEBUG:
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
+
+# Session settings
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG

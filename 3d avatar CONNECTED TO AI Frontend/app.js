@@ -9,18 +9,16 @@ class ChatApp {
         this.sendButton = document.getElementById('sendButton');
         this.chatMessages = document.getElementById('chatMessages');
         
-        this.apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:10000'
-            : 'https://threed-avatar-connected-to-ai-1.onrender.com';
-        
         this.authToken = null;
         this.currentConversationId = null;
         this.maxRetries = 3;
         this.retryDelay = 1000;
 
-        this.isDevelopment = window.location.protocol === 'file:' || 
-                            window.location.hostname === 'localhost' || 
-                            window.location.hostname === '127.0.0.1';
+        this.isDevelopment = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1' ||
+                            window.location.protocol === 'file:';
+
+        this.apiBaseUrl = this.getApiBaseUrl();
 
         if (window.location.protocol === 'file:') {
             this.showServerInstructions();
@@ -28,6 +26,21 @@ class ChatApp {
         }
 
         this.init();
+    }
+
+    getApiBaseUrl() {
+        // Development environment
+        if (this.isDevelopment) {
+            return 'http://localhost:10000';
+        }
+        
+        // Production environment - Render
+        if (window.location.hostname.includes('render.com')) {
+            return 'https://threed-avatar-connected-to-ai-1.onrender.com';
+        }
+        
+        // Default production URL (can be customized based on deployment)
+        return 'https://threed-avatar-connected-to-ai-1.onrender.com';
     }
 
     init() {
@@ -65,9 +78,11 @@ class ChatApp {
         const loginUrl = `${this.apiBaseUrl}/chat/login/`;
         
         if (this.isDevelopment) {
-            console.log('Attempting login...', {
+            console.log('Login attempt:', {
                 url: loginUrl,
                 username,
+                isDev: this.isDevelopment,
+                hostname: window.location.hostname,
                 timestamp: new Date().toISOString()
             });
         }
@@ -95,16 +110,23 @@ class ChatApp {
             this.authToken = data.token;
             
             if (this.isDevelopment) {
-                console.log('Login successful:', { 
+                console.log('Login response:', { 
                     hasToken: !!this.authToken,
+                    status: response.status,
                     timestamp: new Date().toISOString()
                 });
             }
 
             return true;
         } catch (error) {
-            if (error.message.includes('Failed to fetch')) {
-                throw new Error('Unable to connect to server. Please check your internet connection.');
+            if (error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+                console.error('Connection error details:', {
+                    url: loginUrl,
+                    error: error.toString(),
+                    isDev: this.isDevelopment,
+                    hostname: window.location.hostname
+                });
+                throw new Error('Unable to connect to server. Please ensure you are using the correct URL and the server is running.');
             }
             throw error;
         }

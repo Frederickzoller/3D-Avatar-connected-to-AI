@@ -2,6 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
@@ -12,6 +14,28 @@ from asgiref.sync import sync_to_async, async_to_sync
 import asyncio
 
 logger = logging.getLogger(__name__)
+
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(data=request.data,
+                                             context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            
+            logger.info(f"Login successful for user: {user.username}")
+            
+            return Response({
+                'token': token.key,
+                'user_id': user.pk,
+                'username': user.username
+            })
+        except Exception as e:
+            logger.error(f"Login failed: {str(e)}")
+            return Response({
+                'detail': 'Invalid credentials'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class ChatViewSet(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
