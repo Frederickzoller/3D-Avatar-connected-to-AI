@@ -15,35 +15,57 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Avatar Section -->
-        <div class="avatar-section">
-            <div class="avatar-placeholder">
-                <!-- 3D Avatar will be rendered here -->
-                <div class="avatar-loading">Loading Avatar...</div>
+        <!-- Login Section -->
+        <div id="loginSection" class="login-section">
+            <div class="login-box">
+                <h2>Login</h2>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit" class="login-button">Login</button>
+                    <div id="loginError" class="login-error"></div>
+                </form>
             </div>
         </div>
 
-        <!-- Chat Section -->
-        <div class="chat-section">
-            <div class="chat-header">
-                <h1>Citizens LLM-Chat</h1>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be inserted here -->
+        <!-- Rest of the existing content -->
+        <div id="mainContent" class="main-content" style="display: none;">
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-placeholder">
+                    <!-- 3D Avatar will be rendered here -->
+                    <div class="avatar-loading">Loading Avatar...</div>
+                </div>
             </div>
 
-            <div class="chat-input-container">
-                <textarea 
-                    id="messageInput" 
-                    placeholder="Type your message..."
-                    rows="1"
-                ></textarea>
-                <button id="sendButton" class="send-button">
-                    <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                    </svg>
-                </button>
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div class="chat-header">
+                    <h1>Citizens LLM-Chat</h1>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be inserted here -->
+                </div>
+
+                <div class="chat-input-container">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="Type your message..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="send-button">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

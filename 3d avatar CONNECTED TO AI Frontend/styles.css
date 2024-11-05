@@ -183,4 +183,82 @@ body {
     text-align: left;
     background-color: var(--surface);
     border: 1px solid var(--error);
+}
+
+/* Login Styles */
+.login-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.login-box {
+    background: var(--chat-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-box h2 {
+    margin: 0 0 1.5rem;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.login-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.login-form input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-color);
+}
+
+.login-button {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 1rem;
+}
+
+.login-button:hover {
+    background: var(--primary-color-dark);
+}
+
+.login-error {
+    color: var(--error);
+    margin-top: 1rem;
+    text-align: center;
+    min-height: 1.5em;
+}
+
+/* Update existing styles */
+.main-content {
+    display: flex;
+    width: 100%;
+    height: 100vh;
 } 

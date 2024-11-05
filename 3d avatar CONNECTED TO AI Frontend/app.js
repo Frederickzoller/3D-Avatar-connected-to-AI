@@ -1,33 +1,113 @@
 class ChatApp {
     constructor() {
+        this.loginForm = document.getElementById('loginForm');
+        this.loginError = document.getElementById('loginError');
+        this.mainContent = document.getElementById('mainContent');
+        this.loginSection = document.getElementById('loginSection');
+        
         this.messageInput = document.getElementById('messageInput');
         this.sendButton = document.getElementById('sendButton');
         this.chatMessages = document.getElementById('chatMessages');
+        
         this.apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:10000'  // Local development
-            : 'https://threed-avatar-connected-to-ai-1.onrender.com';  // Production
+            ? 'http://localhost:10000'
+            : 'https://threed-avatar-connected-to-ai-1.onrender.com';
+        
         this.authToken = null;
         this.currentConversationId = null;
         this.maxRetries = 3;
         this.retryDelay = 1000;
 
-        // Enhanced development configuration
         this.isDevelopment = window.location.protocol === 'file:' || 
                             window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1';
 
         if (window.location.protocol === 'file:') {
             this.showServerInstructions();
-            return; // Don't initialize if running from file://
+            return;
         }
 
-        // Update credentials to match server requirements
-        this.credentials = {
-            username: 'demo_user',  // Updated username
-            password: 'demo_password'  // Updated password
-        };
-
         this.init();
+    }
+
+    init() {
+        this.loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleLogin();
+        });
+
+        this.setupEventListeners();
+        this.autoResizeInput();
+    }
+
+    async handleLogin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+            this.loginError.textContent = 'Logging in...';
+            
+            const success = await this.login(username, password);
+            if (success) {
+                this.loginSection.style.display = 'none';
+                this.mainContent.style.display = 'flex';
+                this.addMessage('Welcome! You can start chatting now.', 'system');
+            }
+        } catch (error) {
+            this.loginError.textContent = error.message || 'Login failed. Please try again.';
+            if (this.isDevelopment) {
+                console.error('Login error:', error);
+            }
+        }
+    }
+
+    async login(username, password) {
+        const loginUrl = `${this.apiBaseUrl}/chat/login/`;
+        
+        if (this.isDevelopment) {
+            console.log('Attempting login...', {
+                url: loginUrl,
+                username,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        try {
+            const response = await fetch(loginUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+            });
+
+            if (!response.ok) {
+                let errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `Login failed (${response.status})`);
+            }
+
+            const data = await response.json();
+            this.authToken = data.token;
+            
+            if (this.isDevelopment) {
+                console.log('Login successful:', { 
+                    hasToken: !!this.authToken,
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            return true;
+        } catch (error) {
+            if (error.message.includes('Failed to fetch')) {
+                throw new Error('Unable to connect to server. Please check your internet connection.');
+            }
+            throw error;
+        }
     }
 
     showServerInstructions() {
@@ -54,12 +134,6 @@ class ChatApp {
         this.sendButton.disabled = true;
     }
 
-    init() {
-        this.setupEventListeners();
-        this.autoResizeInput();
-        this.login();
-    }
-
     setupEventListeners() {
         this.sendButton.addEventListener('click', () => this.sendMessage());
         this.messageInput.addEventListener('keypress', (e) => {
@@ -75,57 +149,6 @@ class ChatApp {
             this.messageInput.style.height = 'auto';
             this.messageInput.style.height = this.messageInput.scrollHeight + 'px';
         });
-    }
-
-    async login(retryCount = 0) {
-        const loginUrl = `${this.apiBaseUrl}/chat/login/`;
-        
-        if (this.isDevelopment) {
-            console.log('Attempting login...', {
-                url: loginUrl,
-                username: this.credentials.username,
-                timestamp: new Date().toISOString()
-            });
-        }
-
-        try {
-            const response = await fetch(loginUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(this.credentials)
-            });
-
-            if (!response.ok) {
-                let errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            this.authToken = data.token;
-            
-            if (this.isDevelopment) {
-                console.log('Login successful:', { 
-                    hasToken: !!this.authToken,
-                    timestamp: new Date().toISOString()
-                });
-            }
-
-            return true;
-        } catch (error) {
-            console.error('Login error:', error);
-            if (this.isDevelopment) {
-                console.log('Login attempt details:', {
-                    url: loginUrl,
-                    error: error.toString(),
-                    timestamp: new Date().toISOString()
-                });
-            }
-            throw error;
-        }
     }
 
     // Add helper method to clear system messages
