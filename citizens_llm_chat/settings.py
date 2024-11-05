@@ -90,15 +90,11 @@ TEMPLATES = [
 
 # Middleware configuration
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Ensure this is first
-    # 'chat.middleware.ApiCSRFMiddleware',    # Remove or comment out this line
+    'corsheaders.middleware.CorsMiddleware',  # Make sure this is first
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -224,7 +220,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # Remove duplicate CORS settings
-CORS_ALLOW_ALL_ORIGINS = False  # Changed from True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = False  # Changed from True since we're not using credentials
 CORS_PREFLIGHT_MAX_AGE = 86400
 

@@ -20,21 +20,6 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CustomAuthToken(ObtainAuthToken):
-    def options(self, request, *args, **kwargs):
-        origin = request.headers.get('Origin', '')
-        response = HttpResponse()
-        
-        # Check if origin is in allowed origins
-        if origin in settings.CORS_ALLOWED_ORIGINS:
-            response["Access-Control-Allow-Origin"] = origin
-        else:
-            response["Access-Control-Allow-Origin"] = "*"
-            
-        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Accept"
-        response["Access-Control-Max-Age"] = "86400"  # 24 hours
-        return response
-
     def post(self, request, *args, **kwargs):
         try:
             serializer = self.serializer_class(data=request.data,
@@ -43,22 +28,11 @@ class CustomAuthToken(ObtainAuthToken):
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
             
-            response = Response({
+            return Response({
                 'token': token.key,
                 'user_id': user.pk,
                 'username': user.username
             })
-            
-            # Add CORS headers to response
-            origin = request.headers.get('Origin', '')
-            if origin in settings.CORS_ALLOWED_ORIGINS:
-                response["Access-Control-Allow-Origin"] = origin
-            else:
-                response["Access-Control-Allow-Origin"] = "*"
-                
-            response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-            response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, Accept"
-            return response
             
         except Exception as e:
             logger.error(f"Login failed: {str(e)}")

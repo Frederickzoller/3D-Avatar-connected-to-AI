@@ -1,14 +1,1 @@
-django
-djangorestframework
-python-dotenv
-requests
-django-storages
-boto3
-transformers
-numpy==1.24.3
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.1.0+cpu
-accelerate>=0.26.0
-waitress>=2.1.2
-whitenoise
-django-cors-headers>=4.3.1
+django-cors-headers==4.3.1

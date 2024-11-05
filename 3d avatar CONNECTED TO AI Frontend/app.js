@@ -55,21 +55,13 @@ class ChatApp {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({ username, password }),
                 mode: 'cors',
-                credentials: 'same-origin'
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Login failed:', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    error: errorData
-                });
-                throw new Error(errorData.detail || 'Invalid credentials');
+                throw new Error('Login failed');
             }
 
             const data = await response.json();
@@ -77,11 +69,7 @@ class ChatApp {
             return true;
 
         } catch (error) {
-            console.error('Connection error details:', {
-                url: loginUrl,
-                error: error.toString(),
-                headers: error.headers // Log headers for debugging
-            });
+            console.error('Login error:', error);
             throw new Error('Unable to connect to server. Please try again.');
         }
     }
