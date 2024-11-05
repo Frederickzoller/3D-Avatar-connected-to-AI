@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from .services.llm_service import LLMService
@@ -12,25 +13,39 @@ import logging
 from django.conf import settings
 from asgiref.sync import sync_to_async, async_to_sync
 import asyncio
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 logger = logging.getLogger(__name__)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomAuthToken(ObtainAuthToken):
+    def options(self, request, *args, **kwargs):
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+        return response
+
     def post(self, request, *args, **kwargs):
         try:
             serializer = self.serializer_class(data=request.data,
-                                             context={'request': request})
+                                           context={'request': request})
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)
             
-            logger.info(f"Login successful for user: {user.username}")
-            
-            return Response({
+            response = Response({
                 'token': token.key,
                 'user_id': user.pk,
                 'username': user.username
             })
+            
+            # Add CORS headers to response
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Credentials"] = "true"
+            return response
+            
         except Exception as e:
             logger.error(f"Login failed: {str(e)}")
             return Response({

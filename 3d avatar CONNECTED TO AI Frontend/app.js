@@ -79,7 +79,8 @@ class ChatApp {
         } catch (error) {
             console.error('Connection error details:', {
                 url: loginUrl,
-                error: error.toString()
+                error: error.toString(),
+                headers: error.headers // Log headers for debugging
             });
             throw new Error('Unable to connect to server. Please try again.');
         }
