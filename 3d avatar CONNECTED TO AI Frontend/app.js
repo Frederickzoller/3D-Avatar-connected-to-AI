@@ -59,7 +59,7 @@ class ChatApp {
                 },
                 body: JSON.stringify({ username, password }),
                 mode: 'cors',
-                credentials: 'include'
+                credentials: 'same-origin'
             });
 
             if (!response.ok) {

@@ -223,10 +223,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://threed-avatar-connected-to-ai-1.onrender.com",
 ]
 
-# Add these new settings
-CORS_ALLOW_ALL_ORIGINS = True  # Temporarily enable for debugging
-CORS_ALLOW_CREDENTIALS = True
-CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+# Remove duplicate CORS settings
+CORS_ALLOW_ALL_ORIGINS = False  # Changed from True
+CORS_ALLOW_CREDENTIALS = False  # Changed from True since we're not using credentials
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 # Update CORS headers
 CORS_ALLOW_HEADERS = [
@@ -239,19 +239,11 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'access-control-allow-origin',
-    'access-control-allow-headers',
-    'access-control-allow-methods',
 ]
 
-# Ensure CSRF settings don't interfere with CORS
+# Remove duplicate CSRF settings and keep only one set
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
     "https://threed-avatar-connected-to-ai-1.onrender.com",
 ]
-
-# Disable CSRF for development
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_HTTPONLY = False
-CSRF_USE_SESSIONS = False
