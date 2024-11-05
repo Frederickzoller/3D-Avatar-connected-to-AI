@@ -90,7 +90,8 @@ TEMPLATES = [
 
 # Middleware configuration
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Ensure this is first
+    # 'chat.middleware.ApiCSRFMiddleware',    # Remove or comment out this line
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -99,7 +100,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'chat.middleware.ApiCSRFMiddleware',
 ]
 
 # Default primary key field type
@@ -181,7 +181,7 @@ AUTHENTICATION_BACKENDS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",  # Add local development server
     "http://127.0.0.1:5500",
-    "https://threed-avatar-connected-to-ai-1.onrender.com",
+    "https://threed-avatar-connected-to-ai-1.onrender.com",  # Add deployed Render URL
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -210,7 +210,7 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
-    "https://threed-avatar-connected-to-ai-1.onrender.com",
+    "https://threed-avatar-connected-to-ai-1.onrender.com",  # Add deployed Render URL
 ]
 
 SECURE_SSL_REDIRECT = not DEBUG
