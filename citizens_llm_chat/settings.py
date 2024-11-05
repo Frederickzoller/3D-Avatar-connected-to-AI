@@ -102,10 +102,11 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'chat.middleware.ApiCSRFMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'chat.middleware.ApiCSRFMiddleware',
 ]
 
 # Default primary key field type
@@ -187,9 +188,10 @@ AUTHENTICATION_BACKENDS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
     "https://threed-avatar-connected-to-ai-1.onrender.com",
     "https://threed-avatar-connected-to-ai.onrender.com",
-    # Add any additional frontend URLs here
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -224,10 +226,11 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'chat.middleware.ApiCSRFMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'chat.middleware.ApiCSRFMiddleware',
 ]
 
 # Add this to help with proxy settings
@@ -239,6 +242,8 @@ SECURE_SSL_REDIRECT = False  # Set to True in production
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:5500",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
     "https://threed-avatar-connected-to-ai-1.onrender.com",
     "https://threed-avatar-connected-to-ai.onrender.com",
     # Add any additional frontend URLs here
@@ -260,3 +265,15 @@ USE_X_FORWARDED_HOST = True
 # Session settings
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+
+# Security settings - adjust based on environment
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Add these headers for development
+if DEBUG:
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+    SECURE_REFERRER_POLICY = 'same-origin'

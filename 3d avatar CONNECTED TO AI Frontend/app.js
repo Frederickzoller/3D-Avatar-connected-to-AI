@@ -14,32 +14,14 @@ class ChatApp {
         this.maxRetries = 3;
         this.retryDelay = 1000;
 
-        this.isDevelopment = window.location.hostname === 'localhost' || 
-                            window.location.hostname === '127.0.0.1' ||
-                            window.location.protocol === 'file:';
-
+        this.isDevelopment = false;
         this.apiBaseUrl = this.getApiBaseUrl();
-
-        if (window.location.protocol === 'file:') {
-            this.showServerInstructions();
-            return;
-        }
+        console.log('API Base URL:', this.apiBaseUrl);
 
         this.init();
     }
 
     getApiBaseUrl() {
-        // Development environment
-        if (this.isDevelopment) {
-            return 'http://localhost:10000';
-        }
-        
-        // Production environment - Render
-        if (window.location.hostname.includes('render.com')) {
-            return 'https://threed-avatar-connected-to-ai-1.onrender.com';
-        }
-        
-        // Default production URL (can be customized based on deployment)
         return 'https://threed-avatar-connected-to-ai-1.onrender.com';
     }
 
@@ -77,15 +59,11 @@ class ChatApp {
     async login(username, password) {
         const loginUrl = `${this.apiBaseUrl}/chat/login/`;
         
-        if (this.isDevelopment) {
-            console.log('Login attempt:', {
-                url: loginUrl,
-                username,
-                isDev: this.isDevelopment,
-                hostname: window.location.hostname,
-                timestamp: new Date().toISOString()
-            });
-        }
+        console.log('Login attempt:', {
+            url: loginUrl,
+            username,
+            timestamp: new Date().toISOString()
+        });
 
         try {
             const response = await fetch(loginUrl, {
@@ -94,66 +72,30 @@ class ChatApp {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                credentials: 'include',
-                body: JSON.stringify({
-                    username,
-                    password
-                })
+                body: JSON.stringify({ username, password })
             });
 
             if (!response.ok) {
-                let errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || `Login failed (${response.status})`);
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Login failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorData
+                });
+                throw new Error(errorData.detail || 'Invalid credentials');
             }
 
             const data = await response.json();
             this.authToken = data.token;
-            
-            if (this.isDevelopment) {
-                console.log('Login response:', { 
-                    hasToken: !!this.authToken,
-                    status: response.status,
-                    timestamp: new Date().toISOString()
-                });
-            }
-
             return true;
-        } catch (error) {
-            if (error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
-                console.error('Connection error details:', {
-                    url: loginUrl,
-                    error: error.toString(),
-                    isDev: this.isDevelopment,
-                    hostname: window.location.hostname
-                });
-                throw new Error('Unable to connect to server. Please ensure you are using the correct URL and the server is running.');
-            }
-            throw error;
-        }
-    }
 
-    showServerInstructions() {
-        const instructions = `
-            To run this application, you need to use a local development server.
-            
-            Option 1 - Using Python:
-            1. Open terminal/command prompt
-            2. Navigate to the project directory
-            3. Run: python -m http.server 5500
-            4. Open: http://localhost:5500
-            
-            Option 2 - Using Node.js:
-            1. Install: npm install -g http-server
-            2. Navigate to project directory
-            3. Run: http-server
-            4. Open: http://localhost:8080
-            
-            After setting up the server, refresh this page in your browser.
-        `;
-        
-        this.addMessage(instructions, 'system');
-        this.messageInput.disabled = true;
-        this.sendButton.disabled = true;
+        } catch (error) {
+            console.error('Connection error details:', {
+                url: loginUrl,
+                error: error.toString()
+            });
+            throw new Error('Unable to connect to server. Please try again in a few moments.');
+        }
     }
 
     setupEventListeners() {
